@@ -1,0 +1,6 @@
+-sname mnesia_backends
+
+-setcookie mnesia_backends_cookie
+
++K true
++A30
