@@ -56,6 +56,22 @@
 %%%
 %%% Stored values will be encoded using ETF as binary file.
 %%%
+%%% == Specific Filesystem Options ==
+%%%
+%%% === Ext4 (Linux) ===
+%%%
+%%% === XFS (Linux) ===
+%%%
+%%% === Btrfs (Linux) ===
+%%%
+%%% === FFS2 (FreeBSD) ===
+%%%
+%%% === UFS2 (OpenBSD) ===
+%%%
+%%% === Hammer (DragonFlyBSD) ===
+%%%
+%%% === ZFS ===
+%%%
 %%% @end
 %%%===================================================================
 -module(mnesia_unixfs).
@@ -72,11 +88,10 @@
 -export([init_backend/0]).
 -export([check_definition/4]).
 -export([close_table/2, create_table/2]).
-%% -export([delete/3, delete_table/2]).
-%% -export([fixtable/3]).
-%% -export([first/2, last/2, next/3, prev/3]).
-%% -export([index_is_consistent/3, is_index_consistent/2]).
-%% -export([info/3]).
+-export([delete/3, delete_table/2]).
+-export([fixtable/3]).
+-export([index_is_consistent/3, is_index_consistent/2]).
+-export([info/3]).
 %% -export([insert/3]).
 %% -export([lookup/3]).
 %% -export([load_table/4]).
@@ -94,16 +109,17 @@
 %% -export([tmp_suffixes/0]).
 %% -export([update_counter/4]).
 %% -export([validate_key/6, validate_record/6]).
+%% -export([first/2, last/2, next/3, prev/3]).
 
 %%--------------------------------------------------------------------
 %% types from lib/mnesia/src/mnesia_backend_type.erl
 %%--------------------------------------------------------------------
--type nodes() :: [node(), ...].
+-type nodes()   :: [node(), ...].
 -type aliases() :: [atom(), ...].
--type key() :: any().
-%% -type tab() :: atom().
+-type key()     :: any().
+-type tab()     :: atom().
+-type type()    :: set | bag | ordered_set.
 %% -type rec_name() :: atom().
-%% -type type() :: set | bag | ordered_set.
 %% -type proplist() :: [{atom(), any()}].
 %% -type db_object() :: tuple().
 %% -type matchspec() :: ets:match_spec().
@@ -117,7 +133,7 @@
 %%--------------------------------------------------------------------
 -spec add_aliases(Aliases) -> Return when
       Aliases :: aliases(),
-      Return :: ok.
+      Return  :: ok.
 
 add_aliases(Aliases) -> throw(todo).
 
@@ -126,7 +142,7 @@ add_aliases(Aliases) -> throw(todo).
 %% @end
 %%--------------------------------------------------------------------
 -spec create_schema(Nodes) -> Return when
-      Nodes :: nodes(),
+      Nodes  :: nodes(),
       Return :: ok | {error, term()}.
 
 create_schema(Nodes) ->
@@ -137,9 +153,9 @@ create_schema(Nodes) ->
 %% @end
 %%--------------------------------------------------------------------
 -spec create_schema(Nodes, Aliases) -> Return when
-      Nodes :: nodes(),
+      Nodes   :: nodes(),
       Aliases :: aliases(),
-      Return :: ok | {error, term()}.
+      Return  :: ok | {error, term()}.
 
 create_schema(Nodes, Aliases)
   when is_list(Nodes) andalso is_list(Aliases) ->
@@ -151,10 +167,10 @@ create_schema(Nodes, Aliases)
 %% @end
 %%--------------------------------------------------------------------
 -spec create_table(Alias, Table, Properties) -> Return when
-      Alias :: alias(),
-      Table :: tab(),
+      Alias      :: alias(),
+      Table      :: tab(),
       Properties :: proplists:proplist(),
-      Return :: tab().
+      Return     :: tab().
       
 create_table(Alias, Table, Properties) -> throw(todo).
 
@@ -174,8 +190,8 @@ create_table(Alias, Table, Properties) -> throw(todo).
 %% @end
 %%--------------------------------------------------------------------
 -spec close_table(Alias, Table) -> Return when
-      Alias :: alias(),
-      Table :: tab(),
+      Alias  :: alias(),
+      Table  :: tab(),
       Return :: ok.
 
 close_table(Alias, Table) -> ok.    
@@ -198,11 +214,11 @@ init_backend() ->
 %% @end
 %%--------------------------------------------------------------------
 -spec check_definition(Alias, Table, Nodes, Properties) -> Return when
-      Alias :: alias(),
-      Table :: tab(),
-      Nodes :: nodes(),
+      Alias      :: alias(),
+      Table      :: tab(),
+      Nodes      :: nodes(),
       Properties :: proplists:proplist(),
-      Return :: ok.
+      Return     :: ok.
 
 check_definition(Alias, Table, Nodes, Properties) ->
     ok.
@@ -220,9 +236,9 @@ check_definition(Alias, Table, Nodes, Properties) ->
 %% @end
 %%--------------------------------------------------------------------
 -spec delete(Alias, Table, Key) -> Return when
-      Alias :: alias(),
-      Table :: tab(),
-      Key :: key(),
+      Alias  :: alias(),
+      Table  :: tab(),
+      Key    :: key(),
       Return :: ok.
 
 delete(Alias, Table, Key) -> ok.
@@ -243,8 +259,72 @@ delete(Alias, Table, Key) -> ok.
 %% @end
 %%--------------------------------------------------------------------
 -spec delete_table(Alias, Table) -> Return when
-      Alias :: alias(),
-      Table :: tab(),
+      Alias  :: alias(),
+      Table  :: tab(),
       Return :: ok.
 
 delete_table(Alias, Table) -> ok.
+
+%%--------------------------------------------------------------------
+%% @doc this callback is called by `mnesia_lib:db_fixtable/3'.
+%% @end
+%%--------------------------------------------------------------------
+-spec fixtable(Alias, Table, Bool) -> Return when
+      Alias  :: alias(),
+      Table  :: tab(),
+      Bool   :: boolean(),
+      Return :: ok | true.
+
+fixtable(Alias, Table, Bool) -> ok.
+
+%%--------------------------------------------------------------------
+%% @doc called by `mnesia_index:init_ext_index/5'.
+%% @end
+%%--------------------------------------------------------------------
+-spec index_is_consistent(TypeAlias, IndexTag, Bool) -> Return when
+      TypeAlias :: any(), % not sure yet
+      IndexTag  :: {Table, index, PosInfo},
+      Table     :: tab(),
+      PosInfo   :: {Pos, Type},
+      % @TODO: Pos: don't really know yet, but it looks like it's an
+      %        integer based on mnesia_schema:attr_tab_to_pos/2 
+      %        function.
+      Pos       :: integer(),
+      Type      :: type(),
+      Bool      :: boolean(),
+      Return    :: ok.
+
+index_is_consistent(TypeAlias, IndexTag, Bool) -> ok.
+
+%%--------------------------------------------------------------------
+%% @doc called by `mnesia_index:init_ext_index/5'.
+%% @end
+%%--------------------------------------------------------------------
+-spec is_index_consistent(Alias, IndexTag) -> Return when
+      Alias    :: alias(), % not sure yet
+      IndexTag :: {Table, index, PosInfo},
+      Table    :: tab(),
+      PosInfo  :: {Pos, Type},
+      % @TODO: Pos: don't really know yet, but it looks like it's an
+      %        integer based on mnesia_schema:attr_tab_to_pos/2 
+      %        function.
+      Pos      :: integer(),
+      Type     :: type(),
+      Return   :: boolean().
+
+is_index_consistent(Alias, IndexTag) -> true.
+    
+%%--------------------------------------------------------------------
+%% @doc called by `mnesia:raw_table_info/2', `mnesia_controller:info/1
+%% and `mnesia_loader:get_chunk_func/4'.
+%% @end
+%%--------------------------------------------------------------------
+-spec info(TypeAlias, Table, Item) -> Return when
+      TypeAlias :: any(), % not sure yet
+      Table     :: tab(),
+      Item      :: term(), % usually size | memory
+      Return    :: term()
+
+info(TypeAlias, Table, Item) -> ok.
+
+
