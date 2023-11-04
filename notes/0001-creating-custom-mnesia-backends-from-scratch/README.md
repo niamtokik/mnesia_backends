@@ -95,6 +95,20 @@ mnesia:create_table( my_table
 
 ### `Module:semantics/2`
 
+Based on `mnesia_rocksdb` implementation, `semantics/2` is needed to
+define which kind of plugins are supported by this backend.
+
+```erlang
+-type storage() :: ram_copies | disc_copies | disc_only_copies.
+-type types() :: [bag | set | ordered_set].
+-type index_fun() :: fun(Alias, Tab, Pos, Object) -> [IndexxValue].
+
+-spec semantics(_Alias, storage) -> storage();
+      semantics(_Alias, types) -> types();
+      semantics(_Alias, index_fun) -> index_fun();
+      semantics(_Alias, any()) -> undefined.
+```
+
 ## Backend Example
 
  - [ ] starting a custom backend with `mnesia_debug` backend (within
