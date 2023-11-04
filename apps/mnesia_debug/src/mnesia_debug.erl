@@ -1,82 +1,9 @@
 %%%===================================================================
-%%% @doc 
-%%%
-%%% This module implement a Mnesia backend of Unix Filesystem (UFS,
-%%% FFS, EXT4) as backend example. Behaviors, specifications and
-%%% perhaps macros will be also created here and shared for other
-%%% projects.
-%%%
-%%% == Database Structure ==
-%%%
-%%% ```
-%%% mnesia_unixfs
-%%% |-- table_name1
-%%% |   |-- tn1_key1
-%%% |   |-- tn1_key1.key
-%%% |   |-- tn1_key1.meta
-%%% |   |-- tn1_key2
-%%% |   |-- tn1_key2.key
-%%% |   |-- tn1_key2.meta
-%%% |   |-- tn1_keyN
-%%% |   |-- tn1_keyN.key
-%%% |   `-- tn1_keyN.meta
-%%% |-- table_name2
-%%% |   |-- tn2_key1
-%%% |   |-- tn2_key2
-%%% |   `-- tn2_keyN
-%%% `-- table_nameN
-%%%     |-- tnN_key1
-%%%     |-- tnN_key2
-%%%     `-- tnN_keyN
-%%% '''
-%%%
-%%% === Table Name ===
-%%%
-%%% The table name is created using an atom and must be unique.
-%%%
-%%% === Key Identifier ===
-%%%
-%%% The Key identifier is a bit complex to easily store with filename
-%%% size limitation but a simple rule can be created:
-%%%
-%%% <ul>
-%%%   <li>If the key is an `integer()`, the key will be directly set
-%%%       with this value without any encoding.
-%%%   </li>
-%%%   <li>If the key is any other structure, a checksum must be used,
-%%%       and the real identifier will be stored in the `.key' file
-%%%       stored alongside the key and encoded using ETF.
-%%%   </li>
-%%% </ul>
-%%%
-%%% Note: some structures don't have guarantees their orders, in this
-%%%       case, an external encoding system like `sext' could be used.
-%%%
-%%% === Value Store ===
-%%%
-%%% Stored values will be encoded using ETF as binary file.
-%%%
-%%% == Specific Filesystem Options ==
-%%%
-%%% === Ext4 (Linux) ===
-%%%
-%%% === XFS (Linux) ===
-%%%
-%%% === Btrfs (Linux) ===
-%%%
-%%% === FFS2 (FreeBSD) ===
-%%%
-%%% === UFS2 (OpenBSD) ===
-%%%
-%%% === Hammer (DragonFlyBSD) ===
-%%%
-%%% === ZFS ===
-%%%
+%%% @doc
 %%% @end
 %%%===================================================================
--module(mnesia_unixfs).
+-module(mnesia_debug).
 -behavior(mnesia_backend_type).
-% -behavior(gen_server).
 -include_lib("kernel/include/logger.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
@@ -135,7 +62,7 @@
 
 add_aliases(Aliases) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), add_aliases, [Aliases]}]),
-    throw(todo).
+    throw({todo, ?MODULE, add_aliases, [Aliases]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -147,7 +74,7 @@ add_aliases(Aliases) ->
 
 create_schema(Nodes) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), create_schema, [Nodes]}]),
-    create_schema(Nodes, [unixfs_copies]).
+    throw({todo, ?MODULE, create_schema, [Nodes]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -161,8 +88,8 @@ create_schema(Nodes) ->
 create_schema(Nodes, Aliases)
   when is_list(Nodes) andalso is_list(Aliases) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), create_schema, [Nodes, Aliases]}]),
-    Backends = [{Alias, ?MODULE} || Alias <- Aliases],
-    mnesia:create_schema(Nodes, [{backend_types, Backends}]).
+    _Backends = [{Alias, ?MODULE} || Alias <- Aliases],
+    throw({todo, ?MODULE, create_schema, [Nodes, Aliases]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -176,7 +103,7 @@ create_schema(Nodes, Aliases)
       
 create_table(Alias, Table, Properties) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), create_table, [Alias, Table, Properties]}]),
-    throw(todo).
+    throw({todo, ?MODULE, create_table, [Alias, Table, Properties]}).
 
 %%--------------------------------------------------------------------
 %% @doc Close an open and active table. This callback is called by
@@ -200,7 +127,7 @@ create_table(Alias, Table, Properties) ->
 
 close_table(Alias, Table) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), close_table, [Alias, Table]}]),
-    throw(todo).
+    throw({todo, ?MODULE, close_table, [Alias, Table]}).
 
 %%--------------------------------------------------------------------
 %% @doc Initialize the environment for the backend. This callback is
@@ -210,8 +137,8 @@ close_table(Alias, Table) ->
 %% @end
 %%--------------------------------------------------------------------
 init_backend() ->
-    application:start(mnesia_unixfs),
-    throw(todo).
+    application:start(mnesia_debug),
+    throw({todo, ?MODULE, init_backend, []}).
 
 %%--------------------------------------------------------------------
 %% @doc this callback is called by
@@ -228,7 +155,7 @@ init_backend() ->
 
 check_definition(Alias, Table, Nodes, Properties) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), check_definition, [Alias, Table, Nodes, Properties]}]),
-    ok.
+    throw({todo, ?MODULE, check_definition, [Alias, Table, Nodes, Properties]}).
 
 %%--------------------------------------------------------------------
 %% @doc Delete a key in an opened and active table. This callback is
@@ -250,7 +177,7 @@ check_definition(Alias, Table, Nodes, Properties) ->
 
 delete(Alias, Table, Key) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), delete, [Alias, Table, Key]}]),
-    throw(todo).
+    throw({todo, ?MODULE, delete, [Alias, Table, Key]}).
     
 %%--------------------------------------------------------------------
 %% @doc Delete a table.
@@ -274,7 +201,7 @@ delete(Alias, Table, Key) ->
 
 delete_table(Alias, Table) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), delete_table, [Alias, Table]}]),
-    throw(todo).
+    throw({todo, ?MODULE, delete_table, [Alias, Table]}).
 
 %%--------------------------------------------------------------------
 %% @doc this callback is called by `mnesia_lib:db_fixtable/3'.
@@ -288,7 +215,7 @@ delete_table(Alias, Table) ->
 
 fixtable(Alias, Table, Bool) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), fixtable, [Alias, Table, Bool]}]),
-    throw(todo).
+    throw({todo, ?MODULE, fixtable, [Alias, Table, Bool]}).
 
 %%--------------------------------------------------------------------
 %% @doc called by `mnesia_index:init_ext_index/5'.
@@ -309,7 +236,7 @@ fixtable(Alias, Table, Bool) ->
 
 index_is_consistent(TypeAlias, IndexTag, Bool) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), index_is_consistent, [TypeAlias, IndexTag, Bool]}]),
-    throw(todo).
+    throw({todo, ?MODULE, index_is_consistent, [TypeAlias, IndexTag, Bool]}).
 
 %%--------------------------------------------------------------------
 %% @doc called by `mnesia_index:init_ext_index/5'.
@@ -329,7 +256,7 @@ index_is_consistent(TypeAlias, IndexTag, Bool) ->
 
 is_index_consistent(Alias, IndexTag) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), is_index_consistent, [Alias, IndexTag]}]),
-    throw(todo).
+    throw({todo, ?MODULE, is_index_consistent, [Alias, IndexTag]}).
     
 %%--------------------------------------------------------------------
 %% @doc called by `mnesia:raw_table_info/2', `mnesia_controller:info/1
@@ -344,7 +271,7 @@ is_index_consistent(Alias, IndexTag) ->
 
 info(TypeAlias, Table, Item) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), into, [TypeAlias, Table, Item]}]),
-    throw(todo).
+    throw({todo, ?MODULE, info, [TypeAlias, Table, Item]}).
 
 %%--------------------------------------------------------------------
 %% @doc Called by 
@@ -366,7 +293,7 @@ info(TypeAlias, Table, Item) ->
 
 insert(TypeAlias, Table, Object) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), insert, [TypeAlias, Table, Object]}]),
-    throw(todo).
+    throw({todo, ?MODULE, insert, [TypeAlias, Table, Object]}).
 
 %%--------------------------------------------------------------------
 %% @doc Called by
@@ -387,7 +314,7 @@ insert(TypeAlias, Table, Object) ->
 
 lookup(TypeAlias, Table, Key) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), lookup, [TypeAlias, Table, Key]}]),
-    throw(todo).
+    throw({todo, ?MODULE, lookup, [TypeAlias, Table, Key]}).
 
 %%--------------------------------------------------------------------
 %% @doc Called by
@@ -411,7 +338,7 @@ lookup(TypeAlias, Table, Key) ->
 
 load_table(TypeAlias, Table, Reason, CsList) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), load_table, [TypeAlias, Table, Reason, CsList]}]),
-    throw(todo).
+    throw({todo, ?MODULE, load_table, [TypeAlias, Table, Reason, CsList]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -430,7 +357,7 @@ load_table(TypeAlias, Table, Reason, CsList) ->
 
 match_delete(TypeAlias, Table, Pattern) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), load_table, [TypeAlias, Table, Pattern]}]),
-    throw(todo).
+    throw({todo, ?MODULE, match_delete, [TypeAlias, Table, Pattern]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -447,7 +374,7 @@ match_delete(TypeAlias, Table, Pattern) ->
 
 receiver_first_message(Sender, FirstMsg, Alias, Table) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), receiver_first_message, [Sender, FirstMsg, Alias, Table]}]),
-    throw(todo).
+    throw({todo, ?MODULE, receiver_first_message, [Sender, FirstMsg, Alias, Table]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -465,7 +392,7 @@ receiver_first_message(Sender, FirstMsg, Alias, Table) ->
 
 receive_data(Data, Alias, Name, Sender, State) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), receive_data, [Data, Alias, Name, Sender, State]}]),
-    throw(todo).
+    throw({todo, ?MODULE, receive_data, [Data, Alias, Name, Sender, State]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -480,7 +407,7 @@ receive_data(Data, Alias, Name, Sender, State) ->
 
 receive_done(Alias, Table, Sender, State) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), receive_done, [Alias, Table, Sender, State]}]),
-    throw(todo).
+    throw({todo, ?MODULE, receive_done, [Alias, Table, Sender, State]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -492,7 +419,7 @@ receive_done(Alias, Table, Sender, State) ->
 
 real_suffixes() -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), real_suffixes, []}]),
-    throw(todo).
+    throw({todo, ?MODULE, real_suffixes, []}).
     
 %%--------------------------------------------------------------------
 %% @doc
@@ -504,7 +431,7 @@ real_suffixes() ->
 
 remove_aliases(Aliases) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), remove_aliases, [Aliases]}]),
-    throw(todo).
+    throw({todo, ?MODULE, remove_aliases, [Aliases]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -517,7 +444,7 @@ remove_aliases(Aliases) ->
 
 repair_continuation(Continuation, MatchSpec) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), repair_continuation, [Continuation, MatchSpec]}]),
-    throw(todo).
+    throw({todo, ?MODULE, repair_continuation, [Continuation, MatchSpec]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -531,7 +458,7 @@ repair_continuation(Continuation, MatchSpec) ->
 
 select(Continuation) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), select, [Continuation]}]),
-    throw(todo).
+    throw({todo, ?MODULE, select, [Continuation]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -547,7 +474,7 @@ select(Continuation) ->
 
 select(TypeAlias, Table, Pattern) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), select, [TypeAlias, Table, Pattern]}]),
-    throw(todo).
+    throw({todo, ?MODULE, select, [TypeAlias, Table, Pattern]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -562,7 +489,7 @@ select(TypeAlias, Table, Pattern) ->
 
 select(TypeAlias, Table, MatchSpec, Limit) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), select, [TypeAlias, Table, MatchSpec, Limit]}]),
-    throw(todo).
+    throw({todo, ?MODULE, select, [TypeAlias, Table, MatchSpec, Limit]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -580,7 +507,7 @@ select(TypeAlias, Table, MatchSpec, Limit) ->
 
 sender_init(TypeAlias, Table, LoadReason, Pid) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), sender_init, [TypeAlias, Table, LoadReason, Pid]}]),
-    throw(todo).
+    throw({todo, ?MODULE, sender_init, [TypeAlias, Table, LoadReason, Pid]}).
       
 %%--------------------------------------------------------------------
 %% @doc
@@ -595,7 +522,7 @@ sender_init(TypeAlias, Table, LoadReason, Pid) ->
 
 semantics(TypeAlias, Item) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), semantics, [TypeAlias, Item]}]),
-    throw(todo).
+    throw({todo, ?MODULE, semantics, [TypeAlias, Item]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -613,7 +540,7 @@ semantics(TypeAlias, Item) ->
 
 slot(TypeAlias, Table, Pos) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), slot, [TypeAlias, Table, Pos]}]),
-    throw(todo).
+    throw({todo, ?MODULE, slot, [TypeAlias, Table, Pos]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -626,7 +553,7 @@ slot(TypeAlias, Table, Pos) ->
 
 sync_close_table(TypeAlias, Table) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), sync_close_table, [TypeAlias, Table]}]),
-    throw(todo).
+    throw({todo, ?MODULE, sync_close_table, [TypeAlias, Table]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -638,7 +565,7 @@ sync_close_table(TypeAlias, Table) ->
 
 tmp_suffixes() ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), tmp_suffixes, []}]),
-    throw(todo).
+    throw({todo, ?MODULE, tmp_suffixes, []}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -653,7 +580,7 @@ tmp_suffixes() ->
 
 update_counter(TypeAlias, Table, Counter, Value) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), update_counter, [TypeAlias, Table, Counter, Value]}]),
-    throw(todo).
+    throw({todo, ?MODULE, update_counter, [TypeAlias, Table, Counter, Value]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -670,7 +597,7 @@ update_counter(TypeAlias, Table, Counter, Value) ->
 
 validate_key(Alias, Table, RecordName, Arity, Type, Key) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), validate_key, [Alias, Table, RecordName, Arity, Type, Key]}]),
-    throw(todo).
+    throw({todo, ?MODULE, validate_key, [Alias, Table, RecordName, Arity, Type, Key]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -687,7 +614,7 @@ validate_key(Alias, Table, RecordName, Arity, Type, Key) ->
 
 validate_record(Alias, Table, RecordName, Arity, Type, Object) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), validate_record, [Alias, Table, RecordName, Arity, Type, Object]}]),
-    throw(todo).
+    throw({todo, ?MODULE, validate_record, [Alias, Table, RecordName, Arity, Type, Object]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -700,7 +627,7 @@ validate_record(Alias, Table, RecordName, Arity, Type, Object) ->
 
 first(TypeAlias, Table) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), first, [TypeAlias, Table]}]),
-    throw(todo).
+    throw({todo, ?MODULE, first, [TypeAlias, Table]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -713,7 +640,7 @@ first(TypeAlias, Table) ->
 
 last(TypeAlias, Table) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), last, [TypeAlias, Table]}]),
-    throw(todo).
+    throw({todo, ?MODULE, last, [TypeAlias, Table]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -727,7 +654,7 @@ last(TypeAlias, Table) ->
 
 next(Alias, Table, Key) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), next, [Alias, Table, Key]}]),
-    throw(todo).
+    throw({todo, ?MODULE, next, [Alias, Table, Key]}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -741,5 +668,4 @@ next(Alias, Table, Key) ->
 
 prev(Alias, Table, Key) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), prev, [Alias, Table, Key]}]),
-    throw(todo).
-    
+    throw({todo, ?MODULE, prev, [Alias, Table, Key]}).
