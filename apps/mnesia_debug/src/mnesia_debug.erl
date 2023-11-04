@@ -62,7 +62,8 @@
 
 add_aliases(Aliases) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), add_aliases, [Aliases]}]),
-    throw({todo, ?MODULE, add_aliases, [Aliases]}).
+    % throw({todo, ?MODULE, add_aliases, [Aliases]}).
+    ok.
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -136,9 +137,13 @@ close_table(Alias, Table) ->
 %%
 %% @end
 %%--------------------------------------------------------------------
+-spec init_backend() -> Return when
+      Return :: ok.
+
 init_backend() ->
     application:start(mnesia_debug),
-    throw({todo, ?MODULE, init_backend, []}).
+    ok.
+    % throw({todo, ?MODULE, init_backend, []}).
 
 %%--------------------------------------------------------------------
 %% @doc this callback is called by
@@ -522,7 +527,17 @@ sender_init(TypeAlias, Table, LoadReason, Pid) ->
 
 semantics(TypeAlias, Item) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), semantics, [TypeAlias, Item]}]),
-    throw({todo, ?MODULE, semantics, [TypeAlias, Item]}).
+    % throw({todo, ?MODULE, semantics, [TypeAlias, Item]}),
+    case Item of
+        storage -> disc_only_copies;
+        types -> [set];
+        index_types -> [ordered];
+        index_fun -> fun (_Alias, _Table, _Pos, _Object) -> ok end;
+        _ -> undefined
+    end.
+                             
+                 
+             
 
 %%--------------------------------------------------------------------
 %% @doc
