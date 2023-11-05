@@ -85,13 +85,27 @@ mnesia:create_table( my_table
                    , [{custom_mnesia_backend, [node()]}
                    , {storage_properties, Storage}]).
 ```
-    
+
+ 8. Mnesia will call then `CustomModule:check_definition/4` function
+    callback and should check the properties of the table.
+
 
 ## Backend Definition and Interfaces
 
 ### `Module:init_backend/0`
 
 ### `Module:add_aliases/1`
+
+Example of debugging message:
+
+```erlang
+{ mnesia_debug
+, <0.1032.0>
+, add_aliases
+, [[mnesia_backend_debug]
+  ]
+}
+```
 
 ### `Module:semantics/2`
 
@@ -107,6 +121,138 @@ define which kind of plugins are supported by this backend.
       semantics(_Alias, types) -> types();
       semantics(_Alias, index_fun) -> index_fun();
       semantics(_Alias, any()) -> undefined.
+```
+
+Example of debugging message:
+
+```erlang
+{mnesia_debug,<0.1832.0>,semantics,[mnesia_backend_debug,index_types]}
+{mnesia_debug,<0.1832.0>,semantics,[mnesia_backend_debug,storage]}
+{mnesia_debug,<0.1832.0>,semantics,[mnesia_backend_debug,types]}
+```
+
+### `Module:check_definition/4`
+
+Example of debugging message, where `t3` is the name of table:
+
+```erlang
+{ mnesia_debug
+, <0.385.0>
+, create_table
+, [ mnesia_backend_debug
+  , t3
+  , [ {name,t3}
+    , {type,set}
+    , {ram_copies,[]}
+    , {disc_copies,[]}
+    , {disc_only_copies,[]}
+    , {mnesia_backend_debug,[nonode@nohost]}
+    , {load_order,0}
+    , {access_mode,read_write}
+    , {majority,false}
+    , {index,[]}
+    , {snmp,[]}
+    , {local_content,false}
+    , {record_name,t3}
+    , {attributes,[key,val]}
+    , {user_properties,[]}
+    , {frag_properties,[]}
+    , {storage_properties,[{mnesia_backend_debug,[]}]}
+    , {cookie,{{1699140080964593704,-576460752303423483,1},nonode@nohost}}
+    , {version,{{2,0},[]}}
+    ]
+]}
+```
+
+### `Module:close_table/2`
+
+Example of debugging message, where `t3` is the name of table:
+
+```erlang
+{ mnesia_debug
+, <0.1832.0>
+, close_table
+, [mnesia_backend_debug,t3]
+}
+```
+
+Example of debugging message, where `t3` is the name of table:
+
+### `Module:delete_table/2`
+
+```erlang
+{ mnesia_debug
+, <0.2152.0>
+, delete_table
+ , [mnesia_backend_debug,t3]
+}
+```
+
+### `Module:create_table/3`
+
+Example of debugging message, where `t3` is the name of table:
+
+```erlang
+{ mnesia_debug
+, <0.385.0>
+, create_table
+, [ mnesia_backend_debug
+  , t3
+  , [ {name,t3}
+    , {type,set}
+    , {ram_copies,[]}
+    , {disc_copies,[]}
+    , {disc_only_copies,[]}
+    , {mnesia_backend_debug,[nonode@nohost]}
+    , {load_order,0}
+    , {access_mode,read_write}
+    , {majority,false}
+    , {index,[]}
+    , {snmp,[]}
+    , {local_content,false}
+    , {record_name,t3}
+    , {attributes,[key,val]}
+    , {user_properties,[]}
+    , {frag_properties,[]}
+    , {storage_properties,[{mnesia_backend_debug,[]}]}
+    , {cookie,{{1699140992521145194,-576460752303422015,1},nonode@nohost}}
+    , {version,{{2,0},[]}}
+    ]
+]}
+```
+
+### `Module:load_table/4`
+
+Example of debugging message, where `t3` is the name of table:
+
+```erlang
+{ mnesia_debug
+, <0.389.0>
+, load_table
+, [ mnesia_backend_debug
+  , t3
+  , {dumper,create_table}
+  , [ {name,t3}
+    , {type,set}
+    , {ram_copies,[]}
+    , {disc_copies,[]}
+    , {disc_only_copies,[]}
+    , {mnesia_backend_debug,[nonode@nohost]}
+    , {load_order,0}
+    , {access_mode,read_write}
+    , {majority,false}
+    , {index,[]}
+    , {snmp,[]}
+    , {local_content,false}
+    , {record_name,t3}
+    , {attributes,[key,val]}
+    , {user_properties,[]}
+    , {frag_properties,[]}
+    , {storage_properties,[{mnesia_backend_debug,[]}]}
+    , {cookie,{{1699140992521145194,-576460752303422015,1},nonode@nohost}}
+    , {version,{{2,0},[]}}
+    ]
+]}
 ```
 
 ## Backend Example

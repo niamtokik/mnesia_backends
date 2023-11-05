@@ -100,11 +100,13 @@ create_schema(Nodes, Aliases)
       Alias      :: alias(),
       Table      :: table(),
       Properties :: proplists:proplist(),
-      Return     :: table().
+      Return     :: ok
+                  | {error, term()}.
       
 create_table(Alias, Table, Properties) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), create_table, [Alias, Table, Properties]}]),
-    throw({todo, ?MODULE, create_table, [Alias, Table, Properties]}).
+    % throw({todo, ?MODULE, create_table, [Alias, Table, Properties]}).
+    ok.
 
 %%--------------------------------------------------------------------
 %% @doc Close an open and active table. This callback is called by
@@ -128,7 +130,8 @@ create_table(Alias, Table, Properties) ->
 
 close_table(Alias, Table) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), close_table, [Alias, Table]}]),
-    throw({todo, ?MODULE, close_table, [Alias, Table]}).
+    % throw({todo, ?MODULE, close_table, [Alias, Table]}).
+    ok.
 
 %%--------------------------------------------------------------------
 %% @doc Initialize the environment for the backend. This callback is
@@ -156,11 +159,13 @@ init_backend() ->
       Table      :: table(),
       Nodes      :: nodes(),
       Properties :: proplists:proplist(),
-      Return     :: ok.
+      Return     :: ok
+                  | {ok, Properties}.
 
 check_definition(Alias, Table, Nodes, Properties) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), check_definition, [Alias, Table, Nodes, Properties]}]),
-    throw({todo, ?MODULE, check_definition, [Alias, Table, Nodes, Properties]}).
+    % throw({todo, ?MODULE, check_definition, [Alias, Table, Nodes, Properties]}).
+    {ok, Properties}.
 
 %%--------------------------------------------------------------------
 %% @doc Delete a key in an opened and active table. This callback is
@@ -206,7 +211,8 @@ delete(Alias, Table, Key) ->
 
 delete_table(Alias, Table) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), delete_table, [Alias, Table]}]),
-    throw({todo, ?MODULE, delete_table, [Alias, Table]}).
+    %throw({todo, ?MODULE, delete_table, [Alias, Table]}).
+    ok.
 
 %%--------------------------------------------------------------------
 %% @doc this callback is called by `mnesia_lib:db_fixtable/3'.
