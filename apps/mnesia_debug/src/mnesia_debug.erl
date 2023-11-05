@@ -349,7 +349,8 @@ lookup(TypeAlias, Table, Key) ->
 
 load_table(TypeAlias, Table, Reason, CsList) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), load_table, [TypeAlias, Table, Reason, CsList]}]),
-    throw({todo, ?MODULE, load_table, [TypeAlias, Table, Reason, CsList]}).
+    % throw({todo, ?MODULE, load_table, [TypeAlias, Table, Reason, CsList]}).
+    ok.
 
 %%--------------------------------------------------------------------
 %% @doc

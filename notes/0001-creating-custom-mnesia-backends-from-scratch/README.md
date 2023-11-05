@@ -38,6 +38,8 @@ more when this one is coming directly from Datalog world.
 
 ## Mnesia Custom Backend Steps
 
+### Table Creation Process
+
  1. A schema can be created using `mnesia:create_schema/0`
  
 ```erlang
@@ -89,6 +91,60 @@ mnesia:create_table( my_table
  8. Mnesia will call then `CustomModule:check_definition/4` function
     callback and should check the properties of the table.
 
+ 9. Then `Module:create_table/3` is called
+
+ 10. `Module:semantics/2`
+
+ 11. `Module:load_table/4`
+
+### Read Operations 
+
+Those operations are not altering the database content.
+
+#### `mnesia:read/2`
+
+ 1. `Module:lookup/3`
+
+#### `mnesia:first/1`
+
+ 1. `Module:first/2`
+
+#### `mnesia:last/1`
+
+ 1. `Module:last/2`
+
+#### `mnesia:prev/2`
+
+ 1. `Module:prev/3`
+
+#### `mnesia:next/2`
+
+ 1. `Module:next/3`
+
+#### `mnesia:all_keys/1`
+
+ 1. `Module:fixtable/3`
+
+#### `mnesia:select/2`
+
+ 1. `Module:fixtable/3`
+
+### Write Operations 
+
+Those operations are modifying database's content by creating,
+updating or deleting one or more entries.
+
+#### `mnesia:write/1`
+
+ 1. `Module:validate_record/6`
+
+#### `mnesia:delete/1`
+
+ 1. `Module:delete/3`
+
+#### `mnesia:delete_object/1`
+
+ 1. `Module:load_table/3`
 
 ## Backend Definition and Interfaces
 

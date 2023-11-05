@@ -15,5 +15,8 @@ init([]) ->
                 , intensity => 0
                 , period => 1
                 },
-    ChildSpecs = [],
+    ChildSpecs = [#{ id => mnesia_debug_table
+                   , start => {mnesia_debug_table, start_link, []}
+                   }
+                 ],
     {ok, {SupFlags, ChildSpecs}}.
