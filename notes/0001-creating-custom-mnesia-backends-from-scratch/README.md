@@ -169,12 +169,21 @@ Based on `mnesia_rocksdb` implementation, `semantics/2` is needed to
 define which kind of plugins are supported by this backend.
 
 ```erlang
+% type of storage used
 -type storage() :: ram_copies | disc_copies | disc_only_copies.
--type types() :: [bag | set | ordered_set].
+
+% method to store data
+-type type() :: bag | set | ordered_set.
+-type types() :: [type()].
+
+% type of index
+-type index_type() :: bag | ordered
+-type index_types() :: [index_type].
 -type index_fun() :: fun(Alias, Tab, Pos, Object) -> [IndexxValue].
 
 -spec semantics(_Alias, storage) -> storage();
       semantics(_Alias, types) -> types();
+      semantics(_alias, index_types -> index_types();
       semantics(_Alias, index_fun) -> index_fun();
       semantics(_Alias, any()) -> undefined.
 ```

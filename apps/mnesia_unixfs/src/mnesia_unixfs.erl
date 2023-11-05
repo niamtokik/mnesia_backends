@@ -6,6 +6,33 @@
 %%% perhaps macros will be also created here and shared for other
 %%% projects.
 %%%
+%%% == Usage ==
+%%%
+%%% ```
+%%% % set this module in debug mode
+%%% logger:set_module_level(mnesia_unixfs, all).
+%%%
+%%% % create a new schema if it does not exist
+%%% mnesia:create_schema([node()]).
+%%%
+%%% % start mnesia
+%%% mnesia:start().
+%%%
+%%% % add mnesia_unixfs set as unixfs_copies
+%%% mnesia:add_backend_type(unixfs_copies, mnesia_unixfs).
+%%%
+%%% % create a new default table without any options
+%%% mnesia:create_table(test, [{unixfs_copies, [node()]}]).
+%%%
+%%% % insert a new data. the key is converted with term_to_binary
+%%% % and, hashed with sha256 and then converted as hex string.
+%%% mnesia:dirty_write({test, key, value}).
+%%% ls("Mnesia.nonode@nohost/test").
+%%%
+%%% % to read the value of the key
+%%% mnesia:dirty_read(test, key).
+%%% '''
+%%%
 %%% == Database Structure ==
 %%%
 %%% ```
@@ -129,18 +156,6 @@
 %% @doc
 %% @end
 %%--------------------------------------------------------------------
--spec add_aliases(Aliases) -> Return when
-      Aliases :: aliases(),
-      Return  :: ok.
-
-add_aliases(Aliases) -> 
-    ?LOG_DEBUG("~p",[{?MODULE, self(), add_aliases, [Aliases]}]),
-    throw(todo).
-
-%%--------------------------------------------------------------------
-%% @doc
-%% @end
-%%--------------------------------------------------------------------
 -spec create_schema(Nodes) -> Return when
       Nodes  :: nodes(),
       Return :: ok | {error, term()}.
@@ -165,18 +180,41 @@ create_schema(Nodes, Aliases)
     mnesia:create_schema(Nodes, [{backend_types, Backends}]).
 
 %%--------------------------------------------------------------------
-%% @doc
+%% @doc `mnesia_backend_type' mandatory callback. Adds a new alias.
+%%
+%% @end
+%%--------------------------------------------------------------------
+-spec add_aliases(Aliases) -> Return when
+      Aliases :: aliases(),
+      Return  :: ok.
+
+add_aliases(Aliases) -> 
+    ?LOG_DEBUG("~p",[{?MODULE, self(), add_aliases, [Aliases]}]),
+    ok.
+
+%%--------------------------------------------------------------------
+%% @doc `mnesia_backend_type` mandatory callback. Creates a new table.
+%%
 %% @end
 %%--------------------------------------------------------------------
 -spec create_table(Alias, Table, Properties) -> Return when
       Alias      :: alias(),
       Table      :: table(),
       Properties :: proplists:proplist(),
-      Return     :: table().
+      Return     :: ok.
       
 create_table(Alias, Table, Properties) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), create_table, [Alias, Table, Properties]}]),
-    throw(todo).
+    TableString = atom_to_list(Table),
+    MnesiaDirectory = mnesia_monitor:get_env(dir),
+    TablePath = filename:join(MnesiaDirectory , TableString),
+    case filelib:is_dir(TablePath) of
+        false -> 
+            file:make_dir(TablePath),
+            ok;
+        true ->
+            ok
+    end.
 
 %%--------------------------------------------------------------------
 %% @doc Close an open and active table. This callback is called by
@@ -200,18 +238,22 @@ create_table(Alias, Table, Properties) ->
 
 close_table(Alias, Table) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), close_table, [Alias, Table]}]),
-    throw(todo).
+    ok.
 
 %%--------------------------------------------------------------------
 %% @doc Initialize the environment for the backend. This callback is
 %% called by `mnesia_schema:init_backend/2' and must return ok to
-%% continue the execution and add aliases.
+%% continue the execution and add aliases. If an application is
+%% required by this backend it can be started there.
 %%
 %% @end
 %%--------------------------------------------------------------------
+-spec init_backend() -> Return when
+      Return :: ok.
+
 init_backend() ->
-    application:start(mnesia_unixfs),
-    throw(todo).
+    application:ensure_all_started(mnesia_unixfs),
+    ok.
 
 %%--------------------------------------------------------------------
 %% @doc this callback is called by
@@ -228,7 +270,7 @@ init_backend() ->
 
 check_definition(Alias, Table, Nodes, Properties) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), check_definition, [Alias, Table, Nodes, Properties]}]),
-    ok.
+    {ok, Properties}.
 
 %%--------------------------------------------------------------------
 %% @doc Delete a key in an opened and active table. This callback is
@@ -274,7 +316,7 @@ delete(Alias, Table, Key) ->
 
 delete_table(Alias, Table) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), delete_table, [Alias, Table]}]),
-    throw(todo).
+    ok.
 
 %%--------------------------------------------------------------------
 %% @doc this callback is called by `mnesia_lib:db_fixtable/3'.
@@ -366,7 +408,15 @@ info(TypeAlias, Table, Item) ->
 
 insert(TypeAlias, Table, Object) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), insert, [TypeAlias, Table, Object]}]),
-    throw(todo).
+    TableString = atom_to_list(Table),
+    MnesiaDirectory = mnesia_monitor:get_env(dir),
+    TablePath = filename:join(MnesiaDirectory, TableString),
+    Key = element(2, Object),
+    Value = element(3, Object),
+    KeyEncoded = binary:encode_hex(crypto:hash(sha256,term_to_binary(Key, [deterministic]))),
+    KeyPath = filename:join(TablePath, KeyEncoded),
+    file:write_file(KeyPath, term_to_binary(Value)),
+    ok.
 
 %%--------------------------------------------------------------------
 %% @doc Called by
@@ -387,7 +437,18 @@ insert(TypeAlias, Table, Object) ->
 
 lookup(TypeAlias, Table, Key) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), lookup, [TypeAlias, Table, Key]}]),
-    throw(todo).
+    TableString = atom_to_list(Table),
+    MnesiaDirectory = mnesia_monitor:get_env(dir),
+    TablePath = filename:join(MnesiaDirectory, TableString),
+    KeyEncoded = binary:encode_hex(crypto:hash(sha256,term_to_binary(Key, [deterministic]))),
+    KeyPath = filename:join(TablePath, KeyEncoded),
+    case file:read_file(KeyPath) of
+        {ok, File} ->
+            Value = binary_to_term(File),
+            {Table, Key, Value};
+        Elsewise ->
+            Elsewise
+    end.
 
 %%--------------------------------------------------------------------
 %% @doc Called by
@@ -411,7 +472,7 @@ lookup(TypeAlias, Table, Key) ->
 
 load_table(TypeAlias, Table, Reason, CsList) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), load_table, [TypeAlias, Table, Reason, CsList]}]),
-    throw(todo).
+    ok.
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -583,7 +644,8 @@ sender_init(TypeAlias, Table, LoadReason, Pid) ->
     throw(todo).
       
 %%--------------------------------------------------------------------
-%% @doc
+%% @doc unixfs store all its data on disc only by default.
+%%
 %% @end
 %%--------------------------------------------------------------------
 -spec semantics(TypeAlias, Item) -> Return when
@@ -593,9 +655,19 @@ sender_init(TypeAlias, Table, LoadReason, Pid) ->
               | set | ordered_set | bag 
               | function() | ordered | bag.
 
-semantics(TypeAlias, Item) ->
-    ?LOG_DEBUG("~p",[{?MODULE, self(), semantics, [TypeAlias, Item]}]),
-    throw(todo).
+semantics(Alias, Item) ->
+    ?LOG_DEBUG("~p",[{?MODULE, self(), semantics, [Alias, Item]}]),
+    case Item of 
+        storage -> disc_only_copies;
+        types -> [set, ordered_set, bag];
+        index_types -> [ordered];
+        index_fun -> fun semantics_index_fun/4;
+        _ -> undefined
+    end.
+
+semantics_index_fun(Alias, Table, Pos, Object) -> 
+    ?LOG_DEBUG("~p",[{?MODULE, self(), semantics, [Alias, Table, Pos, Object]}]),
+    ok.
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -638,7 +710,7 @@ sync_close_table(TypeAlias, Table) ->
 
 tmp_suffixes() ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), tmp_suffixes, []}]),
-    throw(todo).
+    [].
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -687,7 +759,7 @@ validate_key(Alias, Table, RecordName, Arity, Type, Key) ->
 
 validate_record(Alias, Table, RecordName, Arity, Type, Object) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), validate_record, [Alias, Table, RecordName, Arity, Type, Object]}]),
-    throw(todo).
+    {RecordName, Arity, Type}.
 
 %%--------------------------------------------------------------------
 %% @doc

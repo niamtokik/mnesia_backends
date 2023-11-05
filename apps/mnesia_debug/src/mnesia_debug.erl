@@ -61,7 +61,7 @@
       Return  :: ok.
 
 add_aliases(Aliases) -> 
-    ?LOG_DEBUG("~p",[{?MODULE, self(), add_aliases, [Aliases]}]),
+    ?LOG_DEBUG("~p",[{self(), ?MODULE, add_aliases, [Aliases]}]),
     % throw({todo, ?MODULE, add_aliases, [Aliases]}).
     ok.
 
