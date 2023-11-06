@@ -95,6 +95,8 @@
 %%%
 %%% === UFS2 (OpenBSD) ===
 %%%
+%%% Filename limit: 127 characters
+%%%
 %%% === Hammer (DragonFlyBSD) ===
 %%%
 %%% === ZFS ===
@@ -106,6 +108,9 @@
 % -behavior(gen_server).
 -include_lib("kernel/include/logger.hrl").
 -include_lib("eunit/include/eunit.hrl").
+% -record(file, { name = undefined :: term()
+%               , content = <<>> :: binary()
+%               }).
 
 %%--------------------------------------------------------------------
 %% callback from lib/mnesia/src/mnesia_backend_type.erl
@@ -330,7 +335,11 @@ delete_table(Alias, Table) ->
 
 fixtable(Alias, Table, Bool) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), fixtable, [Alias, Table, Bool]}]),
-    throw(todo).
+    case Bool of
+        true -> [];
+        false -> []
+    end.
+% throw(todo).
 
 %%--------------------------------------------------------------------
 %% @doc called by `mnesia_index:init_ext_index/5'.
@@ -386,7 +395,13 @@ is_index_consistent(Alias, IndexTag) ->
 
 info(TypeAlias, Table, Item) -> 
     ?LOG_DEBUG("~p",[{?MODULE, self(), into, [TypeAlias, Table, Item]}]),
-    throw(todo).
+    case Item of
+        size -> 0;
+        memory -> 0;
+        file_size -> 0
+    end.
+             
+% throw(todo).
 
 %%--------------------------------------------------------------------
 %% @doc Called by 
@@ -413,10 +428,15 @@ insert(TypeAlias, Table, Object) ->
     TablePath = filename:join(MnesiaDirectory, TableString),
     Key = element(2, Object),
     Value = element(3, Object),
-    KeyEncoded = binary:encode_hex(crypto:hash(sha256,term_to_binary(Key, [deterministic]))),
+    KeyEncoded = binary:encode_hex(term_to_binary(Key, [deterministic, compressed])),
     KeyPath = filename:join(TablePath, KeyEncoded),
-    file:write_file(KeyPath, term_to_binary(Value)),
-    ok.
+    case byte_size(KeyEncoded) < 128 of
+        true ->
+            file:write_file(KeyPath, term_to_binary(Value)),
+            ok;
+        false ->
+            ok
+    end.
 
 %%--------------------------------------------------------------------
 %% @doc Called by
@@ -440,14 +460,19 @@ lookup(TypeAlias, Table, Key) ->
     TableString = atom_to_list(Table),
     MnesiaDirectory = mnesia_monitor:get_env(dir),
     TablePath = filename:join(MnesiaDirectory, TableString),
-    KeyEncoded = binary:encode_hex(crypto:hash(sha256,term_to_binary(Key, [deterministic]))),
+    KeyEncoded = binary:encode_hex(term_to_binary(Key, [deterministic, compressed])),
     KeyPath = filename:join(TablePath, KeyEncoded),
-    case file:read_file(KeyPath) of
-        {ok, File} ->
-            Value = binary_to_term(File),
-            {Table, Key, Value};
-        Elsewise ->
-            Elsewise
+    case byte_size(KeyEncoded) < 128 of
+        true ->
+            case file:read_file(KeyPath) of
+                {ok, File} ->
+                    Value = binary_to_term(File),
+                    {Table, Key, Value};
+                Elsewise ->
+                    Elsewise
+            end;
+        false ->
+            {Table, Key, []}
     end.
 
 %%--------------------------------------------------------------------
@@ -608,7 +633,15 @@ select(Continuation) ->
 
 select(TypeAlias, Table, Pattern) ->
     ?LOG_DEBUG("~p",[{?MODULE, self(), select, [TypeAlias, Table, Pattern]}]),
-    throw(todo).
+    TableString = atom_to_list(Table),
+    MnesiaDirectory = mnesia_monitor:get_env(dir),
+    TablePath = filename:join(MnesiaDirectory , TableString),
+    case file:list_dir(TablePath) of
+        {ok, Files} -> 
+            [ binary_to_term(binary:decode_hex(list_to_binary(File))) || File <- Files ];
+        Elsewise -> Elsewise
+    end.
+    % throw(todo).
 
 %%--------------------------------------------------------------------
 %% @doc
